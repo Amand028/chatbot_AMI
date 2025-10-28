@@ -2,5 +2,4 @@ python-telegram-bot==20.6
 google-generativeai
 gTTS
 python-dotenv
-langchain
-langchain-core
+
