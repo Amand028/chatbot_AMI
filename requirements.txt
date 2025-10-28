@@ -1,7 +1,6 @@
-python-telegram-bot==20.3
+python-telegram-bot==20.6
 google-generativeai
 gTTS
+python-dotenv
 langchain
 langchain-core
-python-dotenv
-sqlite3
