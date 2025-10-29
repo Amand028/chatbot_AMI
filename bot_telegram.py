@@ -7,19 +7,15 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 import google.generativeai as genai
 
-# ======================================================
 # 🔹 Carrega variáveis de ambiente
-# ======================================================
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 genai.configure(api_key=API_KEY)
-MODELO_ESCOLHIDO = "gemini-1.5-flash"
+MODELO_ESCOLHIDO = "gemini-1.5"  # modelo compatível com generate_text
 
-# ======================================================
 # 🔹 Banco de dados SQLite
-# ======================================================
 DB_PATH = "chatbot_ami.db"
 
 def inicializar_banco():
@@ -52,9 +48,7 @@ def carregar_historico(user_id):
     conn.close()
     return [{"usuario": u, "assistente": a} for u, a in dados]
 
-# ======================================================
 # 🔹 Prompt do assistente
-# ======================================================
 SYSTEM_INSTRUCTIONS = """
 Você é Ami, uma assistente virtual para idosos que responde APENAS dúvidas sobre o uso de celulares Samsung e redes sociais.
 
@@ -80,29 +74,20 @@ def montar_prompt(historico, entrada_usuario):
     )
     return prompt
 
-# ======================================================
-# 🔹 Gerador de respostas (Gemini)
-# ======================================================
+# 🔹 Gerador de respostas (Gemini via generate_text)
 def responder_assistente(historico, entrada_usuario):
     prompt = montar_prompt(historico, entrada_usuario)
-
     try:
-        llm = genai.GenerativeModel(model_name=MODELO_ESCOLHIDO)
-        conteudo = [{"role": "user", "parts": [prompt]}]
-        resposta = llm.generate_content(conteudo)
-        # Ajuste para garantir que pegue o texto corretamente
-        if hasattr(resposta, "text"):
-            return resposta.text
-        elif hasattr(resposta, "output_text"):
-            return resposta.output_text
-        else:
-            return str(resposta)
+        resposta = genai.generate_text(
+            model=MODELO_ESCOLHIDO,
+            prompt=prompt,
+            temperature=0.7
+        )
+        return resposta.text
     except Exception as e:
         return f"Desculpe, ocorreu um erro ao responder: {e}"
 
-# ======================================================
 # 🔹 Handlers do Telegram
-# ======================================================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("👋 Olá! Eu sou Ami, sua assistente virtual.\nQual o seu nome?")
 
@@ -111,15 +96,12 @@ async def mensagem(update: Update, context: ContextTypes.DEFAULT_TYPE):
     texto = update.message.text
     historico = carregar_historico(user_id)
 
-    # Mensagem "pensando"
     mensagem_pensando = await update.message.reply_text("💭 Ami está pensando...")
     await asyncio.sleep(1.2)
 
-    # Resposta do assistente
     resposta = responder_assistente(historico, texto)
     salvar_historico(user_id, texto, resposta)
 
-    # Atualiza mensagem de "pensando"
     await mensagem_pensando.edit_text(resposta)
 
     # Gera áudio TTS
@@ -129,13 +111,11 @@ async def mensagem(update: Update, context: ContextTypes.DEFAULT_TYPE):
         tts.save(audio_path)
         with open(audio_path, "rb") as audio_file:
             await update.message.reply_voice(voice=audio_file)
-        os.remove(audio_path)  # apaga o arquivo temporário
+        os.remove(audio_path)
     except Exception as e:
         await update.message.reply_text(f"(Erro ao gerar áudio: {e})")
 
-# ======================================================
 # 🔹 Execução do bot
-# ======================================================
 def main():
     inicializar_banco()
     app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
