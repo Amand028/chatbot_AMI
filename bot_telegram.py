@@ -78,14 +78,14 @@ def montar_prompt(historico, entrada_usuario):
 def responder_assistente(historico, entrada_usuario):
     prompt = montar_prompt(historico, entrada_usuario)
     try:
-        resposta = genai.generate_text(
-            model=MODELO_ESCOLHIDO,
-            prompt=prompt,
-            temperature=0.7
-        )
-        return resposta.text
+        model = genai.GenerativeModel(model_name=MODELO_ESCOLHIDO)
+        # Use generate_content
+        resposta = model.generate_content(prompt)
+        # Pega o texto da resposta
+        return getattr(resposta, "text", str(resposta))
     except Exception as e:
         return f"Desculpe, ocorreu um erro ao responder: {e}"
+
 
 # 🔹 Handlers do Telegram
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -128,3 +128,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
