@@ -5,32 +5,21 @@ from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 import google.generativeai as genai
-
-# FIREBASE / FIRESTORE
 from google.cloud import firestore
 
 
-# ======================================================
-# 1️⃣ CONFIGURAÇÕES INICIAIS
-# ======================================================
 load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
-# Configuração do Firestore
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 db = firestore.Client()
 colecao = db.collection("chatbot_ami_mensagens")
 
-# Configuração Gemini
 genai.configure(api_key=API_KEY)
 MODELO_ESCOLHIDO = "gemini-2.5-flash"
 
-
-# ======================================================
-# 2️⃣ FUNÇÕES DO FIRESTORE
-# ======================================================
 def salvar_mensagem(user_id, mensagem, resposta):
     """Salva a interação no Firestore"""
     doc_ref = colecao.document(str(user_id)).collection("historico")
@@ -55,10 +44,6 @@ def carregar_historico(user_id):
 
     return historico
 
-
-# ======================================================
-# 3️⃣ PROMPT BASE (Ami)
-# ======================================================
 SYSTEM_INSTRUCTIONS = """
 Você é Ami, uma assistente virtual para idosos que responde APENAS dúvidas sobre o uso de celulares Samsung e redes sociais.
 
@@ -85,10 +70,6 @@ def montar_prompt(historico, entrada_usuario):
     )
     return prompt
 
-
-# ======================================================
-# 4️⃣ RESPOSTA DO GEMINI
-# ======================================================
 def responder_assistente(historico, entrada_usuario):
     prompt = montar_prompt(historico, entrada_usuario)
 
@@ -100,10 +81,6 @@ def responder_assistente(historico, entrada_usuario):
     except Exception as e:
         return f"Desculpe, ocorreu um erro ao responder: {e}"
 
-
-# ======================================================
-# 5️⃣ HANDLERS TELEGRAM
-# ======================================================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("👋 Olá! Eu sou Ami, sua assistente virtual.\nQual o seu nome?")
 
@@ -122,7 +99,6 @@ async def mensagem(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await msg_temp.edit_text(resposta)
 
-    # Envia áudio
     try:
         audio_path = f"resposta_{user_id}.mp3"
         tts = gTTS(resposta, lang="pt")
@@ -136,10 +112,6 @@ async def mensagem(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"(Erro ao gerar áudio: {e})")
 
-
-# ======================================================
-# 6️⃣ EXECUÇÃO
-# ======================================================
 def main():
     app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
 
