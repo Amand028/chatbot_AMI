@@ -13,21 +13,21 @@ from google.cloud import speech #Transcrição de áudio do usuário
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-#variaveis globais
+
 API_KEY = os.environ.get("API_KEY")
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 
-# URLs definidas com as variáveis globais
+
 TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
 TELEGRAM_API_VOICE_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendVoice"
 
-# endpoints
+
 db = None
 colecao = None 
 MODELO_ESCOLHIDO = "gemini-2.5-flash"
 
 
-# historico
+
 def carregar_historico(user_id):
     if db is None or colecao is None:
         logger.error("ERRO: Firestore client não inicializado globalmente.")
