@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 📌 REGRA DE SEGURANÇA RECOMENDADA
+    // O chat só pode ser lido e escrito pela Conta de Serviço do Cloud Function
+    match /conversations/{userId} {
+      allow read, write: if request.auth.token.email == "115014617748-compute@developer.gserviceaccount.com";
+    }
+
+    // Regra para todas as outras coleções: NINGUÉM pode ler ou escrever (seguro por padrão)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

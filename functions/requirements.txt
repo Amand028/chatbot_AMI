@@ -1,0 +1,9 @@
+flask
+google-cloud-firestore
+firebase-admin
+google-generativeai
+python-telegram-bot
+gTTS
+requests
+google-cloud-texttospeech
+google-cloud-speech
