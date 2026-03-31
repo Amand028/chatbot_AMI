@@ -2,19 +2,19 @@ from dotenv import load_dotenv
 import os
 import google.generativeai as genai
 
-# Carregar variáveis do .env
-load_dotenv() #le arquivos .env
+
+load_dotenv()
 API_KEY = os.getenv("API_KEY")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
-# Configuração do Gemini
+
 genai.configure(api_key=API_KEY)
 MODELO_ESCOLHIDO = "gemini-2.5-pro"
 
 
 def responder_assistente(historico, entrada_usuario=None, imagem=None, audio=None):
 
-    #prompt do sistema
+   
     instrucoes = """ 
     Você é Ami, uma assistente virtual para idosos que responde APENAS dúvidas
     sobre o uso de celulares Samsung.
@@ -32,12 +32,12 @@ def responder_assistente(historico, entrada_usuario=None, imagem=None, audio=Non
 
     conteudo = [{"role": "user", "parts": [instrucoes]}]
 
-    # adiciona histórico 
+  
     for h in historico:
         conteudo.append({"role": "user", "parts": [h["usuario"]]})
         conteudo.append({"role": "model", "parts": [h["assistente"]]})
 
-    # adiciona entrada atual
+    
     if entrada_usuario:
         conteudo.append({"role": "user", "parts": [entrada_usuario]})
 
@@ -81,7 +81,6 @@ def main():
 
         print(f"\nAssistente: {resposta}\n")
 
-        # guarda no histórico
         historico.append({"usuario": entrada, "assistente": resposta})
 
 
